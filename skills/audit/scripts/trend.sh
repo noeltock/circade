@@ -3,7 +3,7 @@
 # Slope, not snapshot. Read-only: uses `git archive` into a temp dir, never checks out.
 # Usage: trend.sh [--since 6.months] [--points 4] [paths...]
 set -u; . "$(dirname "$0")/lib.sh"
-since="6.months"; points=4; paths=()
+shallow_guard; since="6.months"; points=4; paths=()
 while [ $# -gt 0 ]; do case "$1" in --since) since="$2"; shift 2;; --points) points="$2"; shift 2;; *) paths+=("$1"); shift;; esac; done
 [ ${#paths[@]} -eq 0 ] && paths=(.)
 # restructure handling: keep the requested paths, add the pre-rename paths that map into them
@@ -23,7 +23,7 @@ for s in $shas; do
   d="$tmp/$s"; mkdir -p "$d"; { git archive "$s" -- "${paths[@]}" 2>/dev/null; for op in ${oldpaths[@]+"${oldpaths[@]}"}; do git archive "$s" -- "$op" 2>/dev/null; done; } | tar -x -C "$d" 2>/dev/null; [ -n "$(ls -A "$d")" ] || { printf "%-10s %-10s  (none of the paths exist at this commit)\n" "$(git log -1 --format=%cs $s)" "${s:0:8}"; continue; }
   G=(-g '!node_modules' -g '!vendor' -g '!dist' -g '!build' -g '!*.min.*' -g '!*.lock' -g '!package-lock.json')
   files=$(rg --files "${G[@]}" -g "$RG_SRC_GLOB" "$d" | wc -l | tr -d ' ')
-  test_loc=$(rg --files "${G[@]}" -g "$RG_SRC_GLOB" "$d" | rg -i '(^|/)(tests?|__tests__|spec)/|\.(test|spec)\.' | xargs -I{} cat {} 2>/dev/null | wc -l | tr -d ' ')
+  test_loc=$(rg --files "${G[@]}" -g "$RG_SRC_GLOB" "$d" | rg -i "$TEST_RE" | xargs -I{} cat {} 2>/dev/null | wc -l | tr -d ' ')
   all_loc=$(rg --files "${G[@]}" -g "$RG_SRC_GLOB" "$d" | xargs -I{} cat {} 2>/dev/null | wc -l | tr -d ' ')
   src_loc=$((all_loc - test_loc))
   fns=$(rg -c "${G[@]}" -g "$RG_SRC_GLOB" -e "$FN_RE" "$d" | awk -F: '{s+=$NF}END{print s+0}')

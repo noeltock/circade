@@ -2,7 +2,7 @@
 # Change coupling from git log only: file pairs that keep changing in the same commit
 # without one importing the other is a hidden seam (Tornhill). Recent window on purpose.
 # Usage: cochange.sh [--since 3.months] [--min 4] [paths...]
-set -u; . "$(dirname "$0")/lib.sh"; since="3.months"; min=4; paths=()
+set -u; . "$(dirname "$0")/lib.sh"; shallow_guard; since="3.months"; min=4; paths=()
 maxf=15; while [ $# -gt 0 ]; do case "$1" in --since) since="$2"; shift 2;; --min) min="$2"; shift 2;; --max-files) maxf="$2"; shift 2;; *) paths+=("$1"); shift;; esac; done
 first=$(git log --since="$since" --reverse --format=%at | head -1); span_d=$(( first>0 ? ( $(date +%s) - first ) / 86400 : 0 ))
 [ "$span_d" -lt 28 ] && echo "# only ${span_d}d of history in window; co-change is weak below 4 weeks"

@@ -9,7 +9,7 @@ while [ $# -gt 0 ]; do case "$1" in --format) fmt="$2"; shift 2;; *) root="$1"; 
 cd "$root" || exit 2
 # 5. not a git worktree? look for the real checkout
 if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
-  base=$(basename "$(pwd)"); cands=$(find "$HOME/dev" -maxdepth 3 -type d -name "$base" -not -path "$(pwd)" 2>/dev/null | while read -r c; do [ -d "$c/.git" ] || git -C "$c" rev-parse --show-toplevel >/dev/null 2>&1 && echo "$c"; done)
+  base=$(basename "$(pwd)"); cands=$(for root in "$(dirname "$(pwd)")" "$HOME/dev" "$HOME/src" "$HOME/code" "$HOME/projects" "$HOME/repos"; do [ -d "$root" ] && find "$root" -maxdepth 3 -type d -name "$base" -not -path "$(pwd)" 2>/dev/null; done | sort -u | while read -r c; do [ -d "$c/.git" ] || git -C "$c" rev-parse --show-toplevel >/dev/null 2>&1 && echo "$c"; done)
   echo "NOT A GIT WORKTREE: $(pwd) (runtime shell or uploads dir?)"
   n=$(echo "$cands" | grep -c . || true)
   if [ "$n" -eq 1 ]; then echo "resolved checkout: $cands  (report this resolution prominently; rerun scope.sh there)"; exit 4
@@ -33,8 +33,8 @@ echo "ignored dirs present on disk (exclude from every scan):"; echo "$ign" | se
 echo "exclude list: $X"
 echo "source paths (tracked dirs with ≥3 source files; pass these positionally to ripwire and every scanner): $srcdirs"
 exts=$(git ls-files | grep -vE '^(vendor|node_modules)/' | grep -oE '[^/.][^/]*\.([A-Za-z0-9]+)$' | sed -E 's/.*\.//' | sort | uniq -c | awk '$1>=3{print $2}')
-cov=""; unc=""; for e in $exts; do case " $SRC_EXTS " in *" $e "*) cov="$cov $e";; *) case "$e" in md|mdx|json|jsonl|ndjson|yml|yaml|toml|lock|txt|log|css|scss|less|html|htm|svg|png|jpg|jpeg|gif|webp|ico|map|snap|xml|csv|tsv|sh|sql|env|example|dist|lockb|woff|woff2|ttf|otf|pdf|mp4|mp3|gz|zip) ;; *) unc="$unc $e";; esac;; esac; done
-echo "stacks: covered$cov · not covered by tools.md:${unc:- none} (a source extension here gets no dead-code or duplication lens; say so in the coverage line)"
+cov=""; cnt=""; unc=""; for e in $exts; do case " $TOOLED_EXTS " in *" $e "*) cov="$cov $e";; *) case " $COUNTED_EXTS " in *" $e "*) cnt="$cnt $e";; *) case "$e" in md|mdx|json|jsonl|ndjson|yml|yaml|toml|lock|txt|log|css|scss|less|html|htm|svg|png|jpg|jpeg|gif|webp|ico|map|snap|xml|csv|tsv|sh|sql|env|example|dist|lockb|woff|woff2|ttf|otf|pdf|mp4|mp3|gz|zip) ;; *) unc="$unc $e";; esac;; esac;; esac; done
+echo "stacks: tooled$cov · counted only (history and shape, no dead-code or duplication lens; say so in the coverage line):${cnt:- none} · not recognised:${unc:- none}"
 echo "shell form: eval \"\$(scope.sh --format shell)\"  → \$SRC_PATHS (positional), \${RG_X[@]} (rg), \$JSCPD_IGNORE (jscpd --ignore)"
 # 3. library mode needs real evidence
 if [ -f package.json ]; then node -e '

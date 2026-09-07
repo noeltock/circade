@@ -82,6 +82,14 @@ ln -s ~/circade/skills/audit ~/.codex/skills/audit    # Codex CLI
 
 Needs `git`, `rg`, `python3`, `jq`, `node`. Everything else is optional and degrades to a documented fallback; the report says which evidence is missing.
 
+## Known limits
+
+- macOS and Linux, bash 3.2 or later. Windows is untested.
+- Stacks with dead-code and duplication lenses: TypeScript/JavaScript, PHP and WordPress, Python, Rust, Go. Java, Kotlin, Swift, Ruby, C#, C/C++, Scala, Elixir, Dart and Vue/Svelte/Astro files are counted by the history and shape scripts only; `scope.sh` says which is which and the report's coverage line carries it.
+- Shallow clones make churn, age and trend wrong; the scripts warn and you should `git fetch --unshallow` first.
+- Rust inline `mod tests` cannot be split from source line counts.
+- Monorepos: scope one package at a time; the tree-level trend mixes packages.
+
 ## Field notes
 
 Four repos audited while building this. Every rule traces to a run that got it wrong: a scanner walking an untracked archive (83% duplication reported, 5% real), a scout returning verdicts instead of evidence, an abstract override deleted because `vendor/` was not walked, a trend table read as a finding, a one-line XML read with `head -c`. Contributions in that spirit, a rule plus the failure behind it, are welcome.
