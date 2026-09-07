@@ -1,8 +1,12 @@
 # circade
 
-**Codebase audits for agent-written repos. Finds the currents, not just the crumbs.**
+**Your agents have been writing into this repo for months. circade tells you where it is going, and what it will cost to change next.**
 
-A cleanup pass lists dead functions. circade asks which way the codebase is moving, what the next change will cost because of it, and which rule would stop it. Repo and git history only. No analytics, no production data, no running site.
+Every coding agent adds and almost none delete. A hundred tests that assert nothing. A predicate hand-copied into forty call sites. Four files that absorb every change because they are where the last change went. A folder tree that promises layers the imports never kept. None of this shows up in a diff review, and a cleanup pass only sweeps the crumbs.
+
+circade reads the repository and its git history the way a senior engineer reads a codebase they have just inherited: what does this thing expose, where does every change land, which seams were never cut, what has been growing faster than the behaviour behind it. It ranks those currents 1 to 5, breaks each into work orders with an owner and a done-when line, and closes every one with a fitness rule that fails the build if the current re-forms. Then it tells you, per current, the one sentence you could say that would make it withdraw the finding.
+
+Run it on a repo you think is fine. The first four runs found a 38-site copied query predicate, a plugin scheduling cron events it never clears, a safety check added to one of two identical handlers and not the other, and a domain layer quietly importing its own UI. All from `git log` and a few scanners, in under ten minutes, with the command behind every claim.
 
 ```
 /audit                # macro + micro, report only
