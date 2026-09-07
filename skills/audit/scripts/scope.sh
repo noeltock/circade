@@ -3,7 +3,7 @@
 # Usage: scope.sh [repo-root] [--format text|shell]
 #   text  (default): human summary + exclude list + secret-shaped files; exit 3 on scope trap
 #   shell: prints RG_X=(...) JSCPD_IGNORE=... X=... assignments to eval
-set -u; export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+set -u; . "$(dirname "$0")/lib.sh"
 root="."; fmt="text"
 while [ $# -gt 0 ]; do case "$1" in --format) fmt="$2"; shift 2;; *) root="$1"; shift;; esac; done
 cd "$root" || exit 2
@@ -19,7 +19,7 @@ fi
 tracked=$(git ls-files | wc -l | tr -d ' ')
 ondisk=$(rg --files --no-ignore -g '!.git' -g '!node_modules' -g '!vendor' | wc -l | tr -d ' ')
 ign=$(git status --ignored --porcelain 2>/dev/null | awk '$1=="!!"{print $2}' | sed 's#/$##' | grep -vE '^(node_modules|vendor)$|\.DS_Store$|(^|/)\._' | awk -F/ '{print (NF>2 ? $1"/"$2 : $0)}' | sort -u | while read -r i; do [ -z "$(git ls-files -- "$i" | head -1)" ] && echo "$i"; done | head -40)
-srcdirs=$(git ls-files | grep -E '\.(php|ts|tsx|js|jsx|py)$' | grep -vE '^(vendor|node_modules)/' | awk -F/ 'NF>1{print $1} NF==1{print $0}' | sort | uniq -c | sort -rn | awk '$1>=3{print $2}' | tr '\n' ' ')
+srcdirs=$(git ls-files | grep -E "$SRC_RE" | grep -vE '^(vendor|node_modules)/' | awk -F/ 'NF>1{print $1} NF==1{print $0}' | sort | uniq -c | sort -rn | awk '$1>=3{print $2}' | tr '\n' ' ')
 X=$(echo "$ign" | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
 RGX=(); JS=("**/node_modules/**" "**/vendor/**"); while IFS= read -r i; do [ -n "$i" ] && RGX+=("-g" "!$i") && JS+=("**/$i/**"); done <<< "$ign"
 if [ "$fmt" = "shell" ]; then
@@ -32,6 +32,9 @@ echo "tracked by top dir:"; git ls-files | awk -F/ 'NF>1{print $1} NF==1{print "
 echo "ignored dirs present on disk (exclude from every scan):"; echo "$ign" | sed 's/^/  /'
 echo "exclude list: $X"
 echo "source paths (tracked dirs with ≥3 source files; pass these positionally to ripwire and every scanner): $srcdirs"
+exts=$(git ls-files | grep -vE '^(vendor|node_modules)/' | grep -oE '[^/.][^/]*\.([A-Za-z0-9]+)$' | sed -E 's/.*\.//' | sort | uniq -c | awk '$1>=3{print $2}')
+cov=""; unc=""; for e in $exts; do case " $SRC_EXTS " in *" $e "*) cov="$cov $e";; *) case "$e" in md|json|yml|yaml|toml|lock|txt|css|scss|html|svg|png|jpg|gif|webp|ico|map|snap|xml|csv|sh|sql|env|example|dist|lockb|woff|woff2|ttf) ;; *) unc="$unc $e";; esac;; esac; done
+echo "stacks: covered$cov · not covered by tools.md:${unc:- none} (a source extension here gets no dead-code or duplication lens; say so in the coverage line)"
 echo "shell form: eval \"\$(scope.sh --format shell)\"  → \$SRC_PATHS (positional), \${RG_X[@]} (rg), \$JSCPD_IGNORE (jscpd --ignore)"
 # 3. library mode needs real evidence
 if [ -f package.json ]; then node -e '

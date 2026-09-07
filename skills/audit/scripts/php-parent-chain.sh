@@ -3,7 +3,7 @@
 # report any ancestor declaring <method>. Any "declares" line = override, never SAFE.
 # "unresolved" = parent lives in WP core or outside the tree; check core for the method.
 # Usage: php-parent-chain.sh <Class> <method> [root]
-set -u; export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+set -u; . "$(dirname "$0")/lib.sh"
 command -v rg >/dev/null || { echo "rg required" >&2; exit 2; }
 exec python3 - "$@" <<'PY'
 import re, subprocess, sys

@@ -2,7 +2,7 @@
 # Static WordPress semantic inventory (repo only, no site): hooks, registrations,
 # storage, cron, assets, capabilities, multisite switches. Counts + top offenders.
 # Usage: wp-inventory.sh [paths...]   (respects .gitignore; excludes vendor/node_modules/tests)
-set -u; export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+set -u; . "$(dirname "$0")/lib.sh"
 command -v rg >/dev/null || { echo "rg required" >&2; exit 2; }
 P=("${@:-.}")
 T=(-g '!**/tests/**' -g '!**/test/**' -g '!**/__tests__/**' -g '!**/spec/**' -g '!**/fixtures/**' -g '!**/__snapshots__/**' -g '!**/*Test.php' -g '!**/*_test.php' -g '!**/*.test.*' -g '!**/*.spec.*')

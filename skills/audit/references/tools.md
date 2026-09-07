@@ -1,5 +1,5 @@
 # Scan tools
-Repo's configured tool first; stack defaults below. Output to `<run>/scan/<tool>.txt`, each file opening `scope: <files> files · <symbols> symbols · top dirs … · dup <n>%`. Liveness checked 2026-09-07.
+Repo's configured tool first; stack defaults below. Every script sources `scripts/lib.sh`, which disables `log.showSignature`, colour and the pager for parseable git output and holds the one source-extension list (`SRC_EXTS`); `scope.sh` prints which stacks in the repo this file covers and which it does not, and an uncovered stack is a coverage line in the report, never a silent zero. Output to `<run>/scan/<tool>.txt`, each file opening `scope: <files> files · <symbols> symbols · top dirs … · dup <n>%`. Liveness checked 2026-09-07.
 
 ## Macro (default, git-only or zero-config)
 `scripts/renames.sh` (exit 3 = restructure in window: hotspots and cochange alias old paths to new, trend adds pre-rename paths; churn and co-change are weak evidence, and cochange is skipped, also when the window holds under four weeks) · `scripts/trend.sh --since 6.months --points 4 <paths>` · `scripts/hotspots.sh --since 10.weeks <paths>` (refuses repos under 8 weeks, drops commits touching >15 files and says how many) · `scripts/cochange.sh --since 3.months --min 4 <paths>` · `npx -y dependency-cruiser --no-config -T json -x node_modules --ts-config tsconfig.json 'src/**/*.ts'` (glob form; a bare dir returns 0 modules; required, madge is not a substitute; keep cycles, orphans and the top-ten imported-by counts) · `pydeps --show-cycles` · ripwire hotspots.
@@ -30,6 +30,12 @@ Before any PHP/WP symbol is called dead: `scripts/wp-refs.sh <symbol> [paths]` (
 
 ## Python
 `ruff check --select F401,F841,ARG,PLR --output-format concise .` · `vulture . --min-confidence 80` · jscpd `--format python`. `deadcode` on PyPI is dead.
+
+## Rust
+`cargo clippy --all-targets --message-format=json` first (dead_code, unused imports and variables come from rustc itself; filter `.message.code.code` for `dead_code`, `unused_imports`, `unused_variables`) · `cargo machete --json` for unused dependencies (zero-config, stable toolchain; `cargo +nightly udeps` is the nightly-only alternative) · `cargo modules dependencies` for the module graph and cycles (Sept 2026 active) · `cargo deny check advisories --format json` as the supply-chain residue line · jscpd `--format rust` · `tokei --files -o json` for LOC per file when trend.sh needs a second opinion. Do not use cargo-depgraph (archived 2026-05). Hotspots and co-change come from the git scripts; `pub fn`/`pub struct` counts feed the export column of trend.sh.
+
+## Go
+`go vet ./...` and `staticcheck -f json ./...` (2026.2, U1000 is the unused-code check) first · `deadcode ./...` from `golang.org/x/tools` (v0.49, whole-program reachability, stronger than U1000 for functions) · `govulncheck -json ./...` as the residue line · `go mod graph` for the module graph, `goda graph ./...` for package-level import structure and cycles · `gocyclo -top 10 .` only as a friction proxy, never a verdict · jscpd `--format go`.
 
 ## Mutation
 Hotspot scorecard under `--deep`, never a gate; survivors are interpreted, not turned into tests. stryker-js, mutmut, Infection (liveness unverified). Cheap substitute: stub the body with an early return, run its tests, pass = theatre, restore from git.

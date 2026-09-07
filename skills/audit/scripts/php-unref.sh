@@ -4,7 +4,7 @@
 #   function → run wp-refs.sh <name>;  method → run wp-refs.sh AND php-parent-chain.sh <Class> <name>.
 # Methods of classes registered via WP_CLI::add_command are command surface and are skipped.
 # Usage: php-unref.sh [paths...]
-set -u; export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+set -u; . "$(dirname "$0")/lib.sh"
 command -v rg >/dev/null || { echo "rg required" >&2; exit 2; }
 paths=("${@:-.}")
 G=(-g '*.php' -g '!vendor' -g '!node_modules' -g '!dist' -g '!build' -g '!**/tests/**' -g '!**/test/**' -g '!**/fixtures/**' -g '!**/*Test.php')

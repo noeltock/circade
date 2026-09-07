@@ -3,7 +3,7 @@
 # cron, shortcodes, wp.hooks). Any output = still referenced. Requires rg (honours
 # .gitignore; grep walks tmp/ and build output and takes minutes).
 # Usage: wp-refs.sh <symbol> [path ...]   default paths: tracked files from repo root
-set -u; export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+set -u; . "$(dirname "$0")/lib.sh"
 command -v rg >/dev/null || { echo "rg required (brew install ripgrep)" >&2; exit 2; }
 sym="${1:?symbol required}"; shift; paths=("${@:-.}")
 G=(-g '*.php' -g '*.js' -g '*.jsx' -g '*.ts' -g '*.tsx' -g '*.twig' -g '*.json'
