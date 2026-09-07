@@ -33,7 +33,7 @@ echo "ignored dirs present on disk (exclude from every scan):"; echo "$ign" | se
 echo "exclude list: $X"
 echo "source paths (tracked dirs with ≥3 source files; pass these positionally to ripwire and every scanner): $srcdirs"
 exts=$(git ls-files | grep -vE '^(vendor|node_modules)/' | grep -oE '[^/.][^/]*\.([A-Za-z0-9]+)$' | sed -E 's/.*\.//' | sort | uniq -c | awk '$1>=3{print $2}')
-cov=""; unc=""; for e in $exts; do case " $SRC_EXTS " in *" $e "*) cov="$cov $e";; *) case "$e" in md|json|yml|yaml|toml|lock|txt|css|scss|html|svg|png|jpg|gif|webp|ico|map|snap|xml|csv|sh|sql|env|example|dist|lockb|woff|woff2|ttf) ;; *) unc="$unc $e";; esac;; esac; done
+cov=""; unc=""; for e in $exts; do case " $SRC_EXTS " in *" $e "*) cov="$cov $e";; *) case "$e" in md|mdx|json|jsonl|ndjson|yml|yaml|toml|lock|txt|log|css|scss|less|html|htm|svg|png|jpg|jpeg|gif|webp|ico|map|snap|xml|csv|tsv|sh|sql|env|example|dist|lockb|woff|woff2|ttf|otf|pdf|mp4|mp3|gz|zip) ;; *) unc="$unc $e";; esac;; esac; done
 echo "stacks: covered$cov · not covered by tools.md:${unc:- none} (a source extension here gets no dead-code or duplication lens; say so in the coverage line)"
 echo "shell form: eval \"\$(scope.sh --format shell)\"  → \$SRC_PATHS (positional), \${RG_X[@]} (rg), \$JSCPD_IGNORE (jscpd --ignore)"
 # 3. library mode needs real evidence
