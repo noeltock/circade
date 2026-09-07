@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": ["**/*.stories.*", "**/*.test.*", "**/__mocks__/**"],
+  "ignoreDependencies": [],
+  "ignoreWorkspaces": [],
+  "project": ["src/**", "inc/**", "assets/src/**", "!**/storybook-static/**", "!**/.firecrawl/**", "!**/build/**", "!**/dist/**", "!**/vendor/**", "!**/tmp/**"]
+}
